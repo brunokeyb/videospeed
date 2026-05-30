@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ordem de Tráfego — Gerador</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>Ordem de Tráfego</h1>
+  <div class="header-actions">
+    <button id="btn-export" type="button">Exportar dados</button>
+    <button id="btn-import" type="button">Importar dados</button>
+    <input type="file" id="file-import" accept="application/json" hidden>
+  </div>
+</header>
+
+<main>
+  <section class="card">
+    <h2>Identificação do veículo e condutor <small>(campos fixos)</small></h2>
+    <div class="grid grid-3">
+      <label>Unidade Solicitante<input id="f-unidadeSolicitante" type="text"></label>
+      <label>Unidade Administrativa<input id="f-unidadeAdmin" type="text"></label>
+      <label>Responsável<input id="f-responsavel" type="text"></label>
+      <label>Marca / Modelo<input id="f-marca" type="text"></label>
+      <label>Chassi<input id="f-chassi" type="text"></label>
+      <label>Placa<input id="f-placa" type="text"></label>
+      <label>Tipo do Veículo<input id="f-tipo" type="text" value="CARRO"></label>
+      <label>Nome do Condutor<input id="f-condutor" type="text"></label>
+      <label>Matrícula<input id="f-matricula" type="text"></label>
+      <label>CNH<input id="f-cnh" type="text"></label>
+      <label>Natureza do Serviço
+        <select id="f-natureza"><option value="Urbano">Urbano</option><option value="Viagem">Viagem</option></select>
+      </label>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Período da ordem</h2>
+    <div class="period-summary" id="period-summary">Sem ordem anterior registrada.</div>
+    <div class="grid grid-4">
+      <label>Número<input id="f-numero" type="text"></label>
+      <label>Data da Solicitação<input id="f-dataSolicitacao" type="date"></label>
+      <label>Data inicial do período<input id="f-dataInicio" type="date"></label>
+      <label>Data final do período<input id="f-dataFim" type="date"></label>
+      <label>Hora padrão início<input id="f-horaInicio" type="text" value="8h"></label>
+      <label>Hora padrão fim<input id="f-horaFim" type="text" value="17h"></label>
+      <label>KM inicial<input id="f-kmInicial" type="number" min="0"></label>
+      <label>KM final (alvo)<input id="f-kmFinal" type="number" min="0"></label>
+    </div>
+    <div class="period-actions">
+      <button id="btn-rebuildDays" type="button">Reconstruir dias úteis</button>
+      <span class="hint">Gera linhas para todos os dias úteis do período (pula sábado, domingo e feriados).</span>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Servidor(es) Transportado(s)</h2>
+    <textarea id="f-servidores" rows="2" placeholder="Ex: WILSON CARVALHO (SECRETÁRIO)"></textarea>
+  </section>
+
+  <section class="card">
+    <h2>Distribuição diária <small>(KM, locais, demandas por dia)</small></h2>
+    <div class="distribution-actions">
+      <button id="btn-redistribute" type="button" class="primary">🎲 Redistribuir KM</button>
+      <button id="btn-claude" type="button">🤖 Gerar prompt para Claude</button>
+      <span class="hint" id="km-summary">—</span>
+    </div>
+    <div class="table-wrap">
+      <table id="days-table">
+        <thead>
+          <tr>
+            <th>≡</th>
+            <th>Data</th>
+            <th>Dia</th>
+            <th>H.Início</th>
+            <th>H.Fim</th>
+            <th>KM</th>
+            <th>🔒</th>
+            <th>Locais</th>
+            <th>Demanda</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="days-body"></tbody>
+      </table>
+    </div>
+    <button id="btn-add-row" type="button">+ Adicionar linha</button>
+  </section>
+
+  <section class="card">
+    <h2>Banco de locais</h2>
+    <div class="locations">
+      <div id="locations-list"></div>
+      <div class="add-location">
+        <input id="loc-name" type="text" placeholder="Nome do local (ex: Jd. Brasília)">
+        <input id="loc-km" type="number" min="0" placeholder="KM médio (vazio = aleatório)">
+        <button id="btn-add-location" type="button">+ Adicionar local</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Templates de demandas</h2>
+    <div id="demand-templates"></div>
+    <div class="add-demand">
+      <input id="demand-name" type="text" placeholder="Nova demanda (ex: demandas da Cultura)">
+      <button id="btn-add-demand" type="button">+ Adicionar demanda</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Assinatura</h2>
+    <div class="signature-area">
+      <img id="signature-preview" alt="Assinatura" style="display:none">
+      <div id="signature-empty">Nenhuma assinatura carregada</div>
+      <input type="file" id="file-signature" accept="image/png,image/jpeg">
+      <button id="btn-clear-signature" type="button">Remover</button>
+      <p class="hint">PNG ou JPG. Fundo branco será removido automaticamente. A assinatura fica salva no navegador.</p>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Gerar PDF</h2>
+    <div class="generate-actions">
+      <button id="btn-generate-pdf" type="button" class="primary big">📄 Gerar PDF</button>
+      <button id="btn-preview" type="button">Pré-visualizar (sem download)</button>
+    </div>
+    <iframe id="pdf-preview" style="display:none"></iframe>
+  </section>
+
+  <section class="card claude-card" id="claude-card" style="display:none">
+    <h2>Prompt para Claude</h2>
+    <p class="hint">Cole esse prompt no Claude.ai (plano Max), copie a resposta JSON e cole no campo abaixo.</p>
+    <textarea id="claude-prompt" rows="14" readonly></textarea>
+    <button id="btn-copy-prompt" type="button">📋 Copiar prompt</button>
+    <h3>Resposta do Claude</h3>
+    <textarea id="claude-response" rows="10" placeholder='Cole aqui o JSON retornado pelo Claude'></textarea>
+    <button id="btn-apply-response" type="button" class="primary">Aplicar resposta</button>
+  </section>
+</main>
+
+<footer>
+  <small>Dados salvos localmente no navegador (localStorage). Use Exportar para fazer backup.</small>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script src="holidays.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
