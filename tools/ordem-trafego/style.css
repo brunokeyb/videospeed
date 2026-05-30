@@ -51,6 +51,13 @@ main {
   font-size: 13px;
 }
 
+.card h2 .restore-btn {
+  float: right;
+  font-size: 12px;
+  padding: 4px 10px;
+  font-weight: normal;
+}
+
 .grid {
   display: grid;
   gap: 10px;
