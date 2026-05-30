@@ -4,16 +4,16 @@ const WEEKDAY_NAMES = ["domingo", "segunda", "terça", "quarta", "quinta", "sext
 
 const DEFAULT_STATE = {
   fixed: {
-    unidadeSolicitante: "",
-    unidadeAdmin: "",
-    responsavel: "",
-    marca: "",
+    unidadeSolicitante: "SMCT",
+    unidadeAdmin: "SMCT",
+    responsavel: "BRUNO VINICIUS F. B. ARAÚJO",
+    marca: "HB20",
     chassi: "",
-    placa: "",
+    placa: "SBX0D12",
     tipo: "CARRO",
-    condutor: "",
-    matricula: "",
-    cnh: "",
+    condutor: "BRUNO VINICIUS F. B. ARAÚJO",
+    matricula: "13427",
+    cnh: "06457432058",
     natureza: "Urbano",
     horaInicio: "8h",
     horaFim: "17h",
@@ -30,7 +30,7 @@ const DEFAULT_STATE = {
     dataFim: "",
     kmInicial: 0,
     kmFinal: 0,
-    servidores: "",
+    servidores: "WILSON CARVALHO (SECRETÁRIO)",
     days: [],
   },
 };
@@ -862,6 +862,15 @@ function wireButtons() {
     alert("Prompt copiado!");
   });
   $("btn-apply-response").addEventListener("click", applyClaudeResponse);
+
+  $("btn-restore-defaults").addEventListener("click", () => {
+    if (!confirm("Restaurar valores padrão nos campos fixos? Isso sobrescreve os valores atuais.")) return;
+    state.fixed = { ...DEFAULT_STATE.fixed };
+    if (!state.current.servidores) state.current.servidores = DEFAULT_STATE.current.servidores;
+    saveState();
+    bindFixed();
+    $("f-servidores").value = state.current.servidores;
+  });
 
   $("btn-export").addEventListener("click", exportData);
   $("btn-import").addEventListener("click", () => $("file-import").click());
