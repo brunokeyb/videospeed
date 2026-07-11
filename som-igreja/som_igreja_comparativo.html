@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema de PA da Igreja — Comparativo de Cenários</title>
+<style>
+  :root{
+    --navy:#1F4E5F; --navy-dark:#153744; --accent:#2E8BC0; --bg:#f5f7f8;
+    --card:#ffffff; --line:#e1e6e8; --text:#26333a; --muted:#66787f;
+    --good:#e7f6ec; --good-text:#1e7a3d; --warn:#fff6e0; --warn-text:#8a6100;
+    --bad:#fdeceb; --bad-text:#b3261e; --pend:#eef2fb; --pend-text:#3949ab;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.55;}
+  header{background:linear-gradient(135deg,var(--navy),var(--navy-dark));color:#fff;padding:32px 24px 24px;}
+  header h1{margin:0 0 6px;font-size:1.7rem;}
+  header p{margin:0;color:#cfe3ea;font-size:.95rem;max-width:760px;}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px 60px;}
+  nav.tabs{position:sticky;top:0;background:var(--bg);z-index:10;display:flex;flex-wrap:wrap;gap:6px;padding:16px 0;border-bottom:1px solid var(--line);margin-bottom:24px;}
+  nav.tabs button{border:1px solid var(--line);background:#fff;color:var(--navy);padding:9px 14px;border-radius:20px;font-size:.85rem;cursor:pointer;font-weight:600;transition:.15s;white-space:nowrap;}
+  nav.tabs button:hover{border-color:var(--accent);}
+  nav.tabs button.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+  section.panel{display:none;animation:fade .2s ease;}
+  section.panel.active{display:block;}
+  @keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+  h2{color:var(--navy);font-size:1.3rem;margin-top:0;border-bottom:2px solid var(--line);padding-bottom:10px;}
+  h3{color:var(--navy-dark);font-size:1.05rem;margin-top:28px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px 24px;margin-bottom:18px;box-shadow:0 1px 2px rgba(0,0,0,.03);}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.88rem;}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);}
+  th{background:var(--navy);color:#fff;font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.02em;}
+  tr:nth-child(even) td{background:#fafcfd;}
+  tr.highlight td{background:var(--good);}
+  .tag{display:inline-block;padding:3px 10px;border-radius:12px;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em;}
+  .tag.rec{background:var(--good);color:var(--good-text);}
+  .tag.alt{background:var(--warn);color:var(--warn-text);}
+  .tag.pend{background:var(--pend);color:var(--pend-text);}
+  .tag.risk{background:var(--bad);color:var(--bad-text);}
+  .total-box{background:var(--navy);color:#fff;border-radius:10px;padding:16px 20px;font-size:1.05rem;font-weight:700;margin:14px 0;}
+  .total-box span{display:block;font-weight:400;font-size:.8rem;color:#cfe3ea;margin-top:4px;}
+  ul.clean{padding-left:20px;}
+  ul.clean li{margin-bottom:6px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr;}}
+  .note{background:var(--pend);border-left:4px solid var(--accent);padding:12px 16px;border-radius:6px;font-size:.88rem;color:var(--navy-dark);margin:14px 0;}
+  a{color:var(--accent);}
+  .src-list a{display:block;padding:6px 0;border-bottom:1px dashed var(--line);font-size:.85rem;}
+  .assumption{font-size:.8rem;color:var(--muted);font-style:italic;}
+  footer{text-align:center;color:var(--muted);font-size:.78rem;padding:30px 0 10px;}
+  table.matrix{table-layout:fixed;}
+  table.matrix th.feat{width:190px;background:var(--card);color:var(--navy);text-align:left;text-transform:none;font-size:.85rem;border-bottom:2px solid var(--line);vertical-align:middle;}
+  table.matrix th.modelcol{text-align:center;font-size:.78rem;}
+  table.matrix td{text-align:center;vertical-align:top;padding:12px 8px;}
+  table.matrix td.featcell{text-align:left;font-weight:600;color:var(--navy-dark);background:#fafcfd;}
+  .cell{display:flex;flex-direction:column;align-items:center;gap:5px;}
+  .icon-ok,.icon-no{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:.75rem;font-weight:700;flex-shrink:0;}
+  .icon-ok{background:var(--good);color:var(--good-text);}
+  .icon-no{background:var(--bad);color:var(--bad-text);}
+  .cell-detail{font-size:.78rem;color:var(--text);line-height:1.3;}
+  .cell-detail.muted{color:var(--muted);font-style:italic;}
+  .verdict{background:var(--navy);color:#fff;border-radius:12px;padding:20px 24px;margin-top:6px;}
+  .verdict h3{color:#fff;margin-top:0;}
+  .verdict p{color:#e3edf1;}
+  .verdict strong{color:#fff;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Sistema de PA da Igreja — Comparativo de Cenários</h1>
+  <p>Estudo técnico e de custo-benefício, com abas por cenário. Preparado para revisão em conjunto com o técnico de áudio. Igreja ~50m x 20m, banda ao vivo com bateria, mesa Soundcraft Ui24R.</p>
+</header>
+
+<div class="wrap">
+  <nav class="tabs" id="tabnav"></nav>
+
+  <section class="panel" data-tab="resumo">
+    <h2>Resumo</h2>
+    <div class="card">
+      <p>Esta página reúne três cenários de sonorização para a nave e o altar, um comparativo de orçamento entre eles, uma análise qualitativa das marcas propostas (Attack x Staner), e as recomendações para os subgraves e para a mesa Ui24R que vocês já têm.</p>
+      <ul class="clean">
+        <li><strong>Cenário A</strong> — o padrão original: 4 caixas Attack VSC83A por lado + 2 retornos.</li>
+        <li><strong>Cenário B</strong> — sua preferência inicial: 6 caixas Staner SLR306S por lado (potência menor, mais distribuído) + 4 retornos pequenos.</li>
+        <li><strong>Cenário C (atualizado)</strong> — o layout por zona, já com os números que você detalhou na última rodada: 6m de entrada até a primeira caixa, 43m de nave com 6 caixas por lado (~8,6m entre elas), 4 caixas no altar (2 apontadas para o padre + 2 apontadas para as paredes de liturgia/ministros), 4 subgraves (2 na frente + 2 no fundo, nos cantos), 1 caixa horizontal na porta central, e coro/porta ainda em aberto em alguns detalhes.</li>
+      </ul>
+      <div class="note">Fiz um desenho esquemático (planta de cima) da lógica do altar + subgraves — também reproduzido na aba Cenário C — pra confirmar se entendi certo antes de fechar os números. Os pontos que ainda dependem de confirmação sua estão marcados como <span class="tag pend">a confirmar</span> na aba Pendências.</div>
+      <div class="note" style="border-left-color:#8a6100;background:var(--warn);color:var(--warn-text)">⚡ <strong>Novo — aba Potência &amp; Headroom:</strong> resolve o impasse "distribuir × potência" que você levantou (a Attack tem muito mais watt que a Staner). Mostra por que a soma de watts assusta mas engana, e traz 3 opções de coluna pra nave — Staner SLR306S (120W) → <strong>Staner SLR-504A (350W)</strong> → Attack VSC83A (670W) — todas no <em>mesmo</em> layout distribuído. Resumo: dá pra ter distribuição E potência; não precisa escolher.</div>
+    </div>
+  </section>
+
+  <section class="panel" data-tab="cenarioA">
+    <h2>Cenário A — padrão original (referência)</h2>
+    <div class="card">
+      <p>4 caixas Attack VSC83A por lado (8 no total) + 2 retornos, sem separar zona do altar.</p>
+      <table>
+        <tr><th>Item</th><th>Qtd.</th><th>Preço unit.</th><th>Subtotal</th></tr>
+        <tr><td>Attack VSC83A Ativa Branca</td><td>8</td><td>R$ 4.800</td><td>R$ 38.400</td></tr>
+        <tr><td>Oneal OPB-404X Ativa Branca (retorno)</td><td>2</td><td>R$ 1.400</td><td>R$ 2.800</td></tr>
+        <tr><td>Subgrave Oneal OLS-1018BR</td><td>2</td><td>R$ 3.200</td><td>R$ 6.400</td></tr>
+      </table>
+      <div class="total-box">Total estimado: R$ 47.600 <span>Potência elétrica total nas principais: 335W RMS é por canal (a caixa tem 2 canais) — total real por caixa é 670W RMS, confirmado no manual técnico oficial da Attack. Detalhe completo na aba Ficha técnica.</span></div>
+      <p class="assumption">Mantido como referência de comparação; não é mais o cenário de maior interesse dado o que você detalhou no Cenário C.</p>
+    </div>
+  </section>
+
+  <section class="panel" data-tab="cenarioB">
+    <h2>Cenário B — nave distribuída (sem separar altar)</h2>
+    <div class="card">
+      <p>6 caixas Staner SLR306S por lado (12 no total) + 4 retornos pequenos, tratando a nave inteira como uma zona só (sem cluster dedicado no altar).</p>
+      <table>
+        <tr><th>Item</th><th>Qtd.</th><th>Preço unit.</th><th>Subtotal</th></tr>
+        <tr><td>Staner SLR306S Ativa Branca</td><td>12</td><td>R$ 3.690</td><td>R$ 44.280</td></tr>
+        <tr><td>Oneal OPB-404X Ativa Branca (retorno)</td><td>4</td><td>R$ 1.400</td><td>R$ 5.600</td></tr>
+        <tr><td>Subgrave Oneal OLS-1018BR</td><td>2</td><td>R$ 3.200</td><td>R$ 6.400</td></tr>
+      </table>
+      <div class="total-box">Total estimado: R$ 56.280 <span>Potência total: 12x120W + 4x120W = 1.920W</span></div>
+      <p class="assumption">Superada pelo Cenário C, que separa altar/nave e responde melhor à necessidade de cobrir padre, leitores e ministros com fontes próprias. Mantido aqui só para comparação.</p>
+    </div>
+  </section>
+
+  <section class="panel" data-tab="cenarioC">
+    <h2>Cenário C — layout por zona <span class="tag rec">Mais aderente ao seu briefing</span></h2>
+
+    <div class="card">
+      <h3 style="margin-top:0">Planta esquemática (vista de cima, fora de escala)</h3>
+      <svg width="100%" viewBox="0 0 680 250" role="img" style="max-width:640px;display:block;margin:0 auto;">
+        <title>Planta esquemática da igreja</title>
+        <desc>Entrada com caixa horizontal e dois subgraves de canto, nave com 6 caixas por lado, altar com 4 caixas (duas para o padre, duas para as paredes de liturgia e ministros) e dois subgraves junto às caixas frontais.</desc>
+        <defs><marker id="arrowC" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+        <rect x="40" y="44" width="12" height="12" fill="#2E8BC0" rx="2"/><text x="58" y="53" font-size="12" fill="#66787f">caixas da nave</text>
+        <rect x="170" y="44" width="12" height="12" fill="#D85A30" rx="2"/><text x="188" y="53" font-size="12" fill="#66787f">caixas do altar</text>
+        <rect x="310" y="44" width="12" height="12" fill="#0F6E56" rx="2"/><text x="328" y="53" font-size="12" fill="#66787f">subgraves</text>
+        <rect x="440" y="44" width="12" height="12" fill="#888780" rx="2"/><text x="458" y="53" font-size="12" fill="#66787f">porta / padre</text>
+        <text x="40" y="76" font-size="12" fill="#66787f">planta esquemática, vista de cima — fora de escala</text>
+        <rect x="40" y="80" width="590" height="140" fill="none" stroke="#e1e6e8" stroke-width="2" stroke-dasharray="4 3" rx="4"/>
+        <line x1="100" y1="80" x2="100" y2="220" stroke="#e1e6e8" stroke-dasharray="3 3"/>
+        <line x1="520" y1="80" x2="520" y2="220" stroke="#e1e6e8" stroke-dasharray="3 3"/>
+        <circle cx="70" cy="98" r="6" fill="#888780"/>
+        <line x1="70" y1="104" x2="70" y2="140" stroke="#888780" stroke-width="1.5" marker-end="url(#arrowC)"/>
+        <rect x="64" y="146" width="12" height="8" fill="#888780" rx="2"/>
+        <text x="70" y="235" font-size="12" text-anchor="middle" fill="#66787f">entrada (6 m)</text>
+        <circle cx="58" cy="92" r="7" fill="#0F6E56"/>
+        <line x1="66" y1="98" x2="92" y2="126" stroke="#0F6E56" stroke-width="1.5" marker-end="url(#arrowC)"/>
+        <circle cx="58" cy="208" r="7" fill="#0F6E56"/>
+        <line x1="66" y1="202" x2="92" y2="174" stroke="#0F6E56" stroke-width="1.5" marker-end="url(#arrowC)"/>
+        <circle cx="140" cy="95" r="6" fill="#2E8BC0"/><circle cx="208" cy="95" r="6" fill="#2E8BC0"/><circle cx="276" cy="95" r="6" fill="#2E8BC0"/>
+        <circle cx="344" cy="95" r="6" fill="#2E8BC0"/><circle cx="412" cy="95" r="6" fill="#2E8BC0"/><circle cx="480" cy="95" r="6" fill="#2E8BC0"/>
+        <circle cx="140" cy="205" r="6" fill="#2E8BC0"/><circle cx="208" cy="205" r="6" fill="#2E8BC0"/><circle cx="276" cy="205" r="6" fill="#2E8BC0"/>
+        <circle cx="344" cy="205" r="6" fill="#2E8BC0"/><circle cx="412" cy="205" r="6" fill="#2E8BC0"/><circle cx="480" cy="205" r="6" fill="#2E8BC0"/>
+        <text x="310" y="235" font-size="12" text-anchor="middle" fill="#66787f">nave — 6 caixas por lado (~8,6 m entre elas)</text>
+        <circle cx="500" cy="95" r="7" fill="#0F6E56"/><circle cx="500" cy="205" r="7" fill="#0F6E56"/>
+        <text x="545" y="76" font-size="12" text-anchor="middle" fill="#66787f">liturgia</text>
+        <circle cx="595" cy="92" r="6" fill="#D85A30"/>
+        <line x1="589" y1="88" x2="558" y2="82" stroke="#D85A30" stroke-width="1.5" marker-end="url(#arrowC)"/>
+        <text x="545" y="230" font-size="12" text-anchor="middle" fill="#66787f">ministros</text>
+        <circle cx="595" cy="208" r="6" fill="#D85A30"/>
+        <line x1="589" y1="212" x2="558" y2="218" stroke="#D85A30" stroke-width="1.5" marker-end="url(#arrowC)"/>
+        <circle cx="555" cy="150" r="6" fill="#888780"/>
+        <text x="555" y="168" font-size="12" text-anchor="middle" fill="#66787f">padre</text>
+        <circle cx="610" cy="105" r="6" fill="#D85A30"/>
+        <line x1="605" y1="110" x2="572" y2="146" stroke="#D85A30" stroke-width="1.5" marker-end="url(#arrowC)"/>
+        <circle cx="610" cy="195" r="6" fill="#D85A30"/>
+        <line x1="605" y1="190" x2="572" y2="154" stroke="#D85A30" stroke-width="1.5" marker-end="url(#arrowC)"/>
+      </svg>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0">Nave — 6 caixas por lado ao longo de 43m <span class="tag rec">Confirmado</span></h3>
+      <p>6m da entrada até a primeira caixa virada para o povo, e daí em diante 43m de nave com 6 caixas Staner SLR306S por lado. Distribuindo 6 pontos ao longo de 43m (do primeiro ao último), a distância real entre elas fica em <strong>~8,6m</strong> — não dá pra chegar em 2-3m de espaçamento com só 6 caixas; essa conta só fecha com bem mais unidades. Deixei a tabela abaixo pra você ver o efeito de apertar mais o espaçamento, caso quisesse ir nessa direção:</p>
+      <table>
+        <tr><th>Caixas por lado</th><th>Espaçamento aprox.</th><th>Total (12/18/24 un.)</th><th>Leitura</th></tr>
+        <tr class="highlight"><td>6 (o que você pediu)</td><td>~8,6 m</td><td>12 un. — R$ 44.280</td><td><span class="tag rec">Recomendado</span> já é um espaçamento apertado e leve pra uma coluna com 20° de abertura vertical — dentro do padrão usado em instalações de igreja desse porte.</td></tr>
+        <tr><td>9</td><td>~5,4 m</td><td>18 un. — R$ 66.420</td><td>Mais uniforme ainda, mas custo 50% maior — só compensa se, na prática, sobrar "buraco" de cobertura com 6.</td></tr>
+        <tr><td>15+</td><td>~2,9 m (a faixa que você mencionou)</td><td>30 un. — R$ 110.700+</td><td><span class="tag risk">Não recomendo</span> nesse porte de sala — é sobreposição excessiva de cobertura (cada caixa já cobre 120° horizontal), custo desproporcional ao ganho.</td></tr>
+      </table>
+      <div class="note">Minha leitura honesta: 6 por lado (~8,6m) já entrega o efeito "leve, chega em todo lugar" que você quer, sem exagero de equipamento. Se depois da instalação o técnico sentir um ponto mais fraco em algum trecho, dá pra reforçar pontualmente ali — não precisa ir para 15+ caixas de largada.</div>
+      <div class="note" style="border-left-color:#8a6100;background:var(--warn);color:var(--warn-text)">⚡ <strong>Sobre a potência da coluna:</strong> a SLR306S (120W) foi a escolha de menor custo, mas é também a de menor folga — e está fora de estoque agora em várias lojas. Se headroom te preocupa (banda com bateria), veja a aba <strong>Potência &amp; Headroom</strong>: dá pra manter <em>exatamente</em> este layout distribuído e subir pra <strong>Staner SLR-504A (350W, ~mesmo preço)</strong> ou <strong>Attack VSC83A (670W)</strong>. Distribuir e ter potência não são opostos.</div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0">Altar — 4 caixas (não são mais 6)</h3>
+      <p>2 anguladas diagonalmente para o padre (centro) + 2 anguladas no sentido contrário para as paredes, uma para o grupo de liturgia e outra para o grupo de ministros. Mesmas duas opções de tamanho de antes, agora recalculadas para 4 unidades:</p>
+      <table>
+        <tr><th>Opção</th><th>Modelo</th><th>Potência</th><th>Altura</th><th>Preço/un</th><th>4 un.</th></tr>
+        <tr class="highlight">
+          <td><span class="tag rec">Opção 1</span></td>
+          <td>Staner SLR-504A Ativa Branca — 4x5"+4 tweeters 1" (resposta vocal superior)</td>
+          <td>350W</td><td>66cm (mesma altura da referência, não é mais curta)</td><td>R$ 3.878</td><td>R$ 15.512</td>
+        </tr>
+        <tr>
+          <td><span class="tag alt">Opção 2</span></td>
+          <td>Oneal OPB-404X Ativa Branca — compacta, discreta, mesma caixa do retorno</td>
+          <td>120W</td><td>60cm, corpo mais curto/quadrado</td><td>R$ 1.400</td><td>R$ 5.600</td>
+        </tr>
+      </table>
+      <div class="note">Não encontrei, na linha Attack Versa Red, uma coluna mais curta que a VSC83A — só existe o modelo de 8x3" (679mm). A Staner tem opção menor (Opção 1); se preferir manter tudo na mesma marca da referência, hoje isso não existe pronto na Attack. <span class="tag pend">a confirmar</span> qual pesa mais: marca única ou formato mais curto.</div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0">Caixa horizontal da entrada</h3>
+      <p>Para quem fica na porta central em dias de lotação: sugiro a mesma <strong>Oneal OPB-404X Ativa Branca</strong> (já usada no altar/retornos) instalada na horizontal acima da porta, apontada para baixo/para fora — mantém o padrão de equipamento, é barata (R$ 1.400) e ativa (não precisa de amplificador extra). Se quiser um passo acima, a <strong>Staner Alive 306A</strong> (compacta, DSP embutido, 100° de abertura horizontal) é mais indicada para cobertura larga numa porta, mas é bem mais cara — vale cotar à parte se o técnico topar.</p>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0">Subgraves — análise técnica (para passar ao técnico)</h3>
+      <p><strong>Seu plano:</strong> 2 subs na frente (sob as primeiras caixas viradas para o povo) + 2 subs no fundo, nos cantos, ambos angulados diagonalmente para o centro — ideia de que as ondas "se encontram" no meio sem cancelar. <strong>Plano do técnico:</strong> 2 na frente + 2 no meio da nave — mas o meio tem cadeiras nas laterais, o que interrompe a instalação. Nenhum sub será suspenso, todos ficarão no chão.</p>
+      <table>
+        <tr><th>Ponto técnico</th><th>O que acontece de fato</th></tr>
+        <tr><td>Grave "aponta" mesmo?</td><td>Não do jeito que uma coluna aponta. Nas frequências de subgrave (40-120Hz, comprimento de onda de ~2,9 a 8,6m), a caixa é pequena demais perto do comprimento de onda pra ter direcionalidade real — o grave sai quase igual em todas as direções, suspenso ou não. Angular o gabinete ajuda a organizar cabo/estética, mas não "mira" o grave como mira a coluna principal.</td></tr>
+        <tr><td>"As ondas se encontram sem cancelar"</td><td>Fisicamente não existe um ponto de encontro limpo. Onde os dois pares tocam com nível parecido (região central da nave), vai haver soma e cancelamento alternados dependendo da posição exata de quem está ouvindo (efeito pente, "comb filtering") — é assim que duas fontes de grave coerentes se comportam quando se sobrepõem, não tem como evitar isso só pela posição.</td></tr>
+        <tr><td>Então por que a ideia funciona na prática?</td><td>Porque a 40-43m de distância entre o par da frente e o par do fundo, cada um domina fortemente a sua própria metade da nave — a região onde os dois têm nível realmente parecido (onde o efeito pente incomoda) é uma faixa estreita no meio, não a igreja inteira. Tratando frente e fundo como <strong>dois reforços locais independentes</strong> (cada par no seu próprio envio da Ui24R, no seu próprio nível), você não depende de uma soma perfeita — cada ouvinte recebe grave decente da fonte mais próxima, que é exatamente o objetivo.</td></tr>
+        <tr><td>Cantos do fundo — é um problema ou uma vantagem?</td><td><strong>Vantagem.</strong> Sub no chão, encostado em canto (duas superfícies refletoras — parede + piso, ou três se for canto de parede) ganha reforço natural de grave (carregamento de canto) — mais grave "de graça", sem gastar potência extra. Isso é a favor do seu plano, não contra.</td></tr>
+        <tr><td>Por que não no meio (ideia do técnico)?</td><td>Tecnicamente também funcionaria, mas você já identificou o problema prático: cadeiras nas laterais bloqueiam a posição. Colocar nos cantos do fundo resolve isso sem perda técnica relevante — na verdade ganha o reforço de canto que o meio da nave não teria.</td></tr>
+      </table>
+      <div class="note"><strong>Conclusão para o técnico:</strong> pode seguir com 2 subs na frente + 2 no fundo (cantos), tratados como dois pares independentes na mesa (sem tentar somá-los como um sistema único). Isso evita o problema de cancelamento que ele mencionou, aproveita o reforço de canto no fundo, e contorna o obstáculo das cadeiras. Se no futuro quiserem os dois pares soando como um sistema mais "costurado" (sem nem uma leve diferença perceptível na transição), aí sim entra um DSP com delay para alinhar os tempos — não é obrigatório para o resultado ser bom, é um refinamento.</div>
+      <p style="margin-top:14px">Sobre rodinhas e folga de cabo para limpeza: sem contraindicação técnica — só reforçar com o instalador que use trava na rodinha (freio) para o sub não deslizar com a vibração durante o uso, e conector/cabo com um pouco de sobra enrolada perto da caixa (não esticado), pra aguentar o arrasto na hora da faxina sem forçar o conector.</p>
+      <table style="margin-top:10px">
+        <tr><th>Item</th><th>Qtd.</th><th>Preço unit.</th><th>Subtotal</th></tr>
+        <tr><td>Subgrave Oneal OLS-1018BR (2 frente + 2 fundo)</td><td>4</td><td>R$ 3.200</td><td>R$ 12.800</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0">Coro (parte de cima) <span class="tag pend">Layout descrito, números a confirmar</span></h3>
+      <p>Pela sua descrição: de frente pro altar, a parede do lado direito do coro tem uma zona de ~6m a partir do canto até o centro reservada para os músicos (já têm monitor próprio, fora do escopo desta análise). Passado esse trecho de 6m, ficam 2 caixas: uma logo após os 6m, angulada diagonalmente pro centro, e outra na extremidade oposta, também angulada pro centro — ambas voltadas para a plateia que senta no coro.</p>
+      <div class="note">Ainda não tenho a largura/comprimento total do coro fechados (você mencionou 4m e depois 6m em momentos diferentes) — sem esse número não dá pra calcular o alcance necessário nem sugerir modelo/potência das 2 caixas com segurança. Quando tiver essa medida, uso o mesmo raciocínio de cobertura das outras zonas para recomendar.</div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0">Outras pendências</h3>
+      <ul class="clean">
+        <li><span class="tag pend">Pendente</span> Modelo de DSP externo, se o técnico decidir que quer os subs/zonas alinhados em delay.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0">Total estimado — Cenário C</h3>
+      <table>
+        <tr><th>Item</th><th>Qtd.</th><th>Subtotal</th></tr>
+        <tr><td>Nave (6/lado, Staner SLR306S)</td><td>12</td><td>R$ 44.280</td></tr>
+        <tr><td>Altar (Opção 1 — Staner SLR-504A)</td><td>4</td><td>R$ 15.512</td></tr>
+        <tr><td>Caixa horizontal da entrada</td><td>1</td><td>R$ 1.400</td></tr>
+        <tr><td>Subgraves (2 frente + 2 fundo)</td><td>4</td><td>R$ 12.800</td></tr>
+      </table>
+      <div class="total-box">Total (altar Opção 1): R$ 73.992
+        <span>Trocando para Opção 2 no altar (Oneal OPB-404X, R$ 5.600 em vez de R$ 15.512): R$ 64.080 | Coro ainda não entra nesse total</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" data-tab="ficha">
+    <h2>Ficha técnica comparativa</h2>
+    <div class="card">
+      <p>Cada linha é uma funcionalidade; cada coluna é uma caixa. Ícone verde = tem/atende, vermelho = não tem/não atende — com o dado específico logo abaixo.</p>
+      <div style="overflow-x:auto">
+      <table class="matrix">
+        <tr>
+          <th class="feat">Funcionalidade</th>
+          <th class="modelcol">Attack<br>VSC83A</th>
+          <th class="modelcol">Staner<br>SLR306S</th>
+          <th class="modelcol">Staner<br>SLR-504A</th>
+          <th class="modelcol">Oneal<br>OPB-404X</th>
+          <th class="modelcol">Staner<br>Alive 306A</th>
+        </tr>
+        <tr>
+          <td class="featcell">Amplificação ativa embutida (sem ampli externo)</td>
+          <td><div class="cell"><span class="icon-ok">✓</span><span class="cell-detail">Classe D, 2 canais</span></div></td>
+          <td><div class="cell"><span class="icon-ok">✓</span><span class="cell-detail">Ativa, 1 canal</span></div></td>
+          <td><div class="cell"><span class="icon-ok">✓</span><span class="cell-detail">Ativa + mixer 2ch</span></div></td>
+          <td><div class="cell"><span class="icon-ok">✓</span><span class="cell-detail">Ativa, 1 canal</span></div></td>
+          <td><div class="cell"><span class="icon-ok">✓</span><span class="cell-detail">Ativa bi-amplificada</span></div></td>
+        </tr>
+        <tr>
+          <td class="featcell">Bi-amplificação (2+ canais internos)</td>
+          <td><div class="cell"><span class="icon-ok">✓</span><span class="cell-detail">2 canais x 335W</span></div></td>
+          <td><div class="cell"><span class="icon-no">✗</span><span class="cell-detail">1 canal só</span></div></td>
+          <td><div class="cell"><span class="icon-no">✗</span><span class="cell-detail">1 canal de saída</span></div></td>
+          <td><div class="cell"><span class="icon-no">✗</span><span class="cell-detail">1 canal só</span></div></td>
+          <td><div class="cell"><span class="icon-ok">✓</span><span class="cell-detail">2 vias, 250W+80W</span></div></td>
+        </tr>
+        <tr>
+          <td class="featcell">DSP completo (EQ paramétrico / crossover digital programável)</td>
+          <td><div class="cell"><span class="icon-no">✗</span><span class="cell-detail">só limiter/proteção</span></div></td>
+          <td><div class="cell"><span class="icon-no">✗</span><span class="cell-detail">não encontrado</span></div></td>
+          <td><div class="cell"><span class="icon-no">✗</span><span class="cell-detail">EQ 2-bandas analógico</span></div></td>
+          <td><div class="cell"><span class="icon-no">✗</span><span class="cell-detail">não encontrado</span></div></td>
+          <td><div class="cell"><span class="icon-ok">✓</span><span class="cell-detail">Linkwitz-Riley 24dB</span></div></td>
+        </tr>
+        <tr>
+          <td class="featcell">Potência RMS confirmada em manual técnico do fabricante</td>
+          <td><div class="cell"><span class="icon-ok">✓</span><span class="cell-detail"><strong>670W total</strong> (335W x2 canais), pico 1.340W</span></div></td>
+          <td><div class="cell"><span class="icon-no">✗</span><span class="cell-detail">120W — só ficha comercial</span></div></td>
+          <td><div class="cell"><span class="icon-no">✗</span><span class="cell-detail">350W — só ficha comercial</span></div></td>
+          <td><div class="cell"><span class="icon-no">✗</span><span class="cell-detail">120W — só ficha comercial</span></div></td>
+          <td><div class="cell"><span class="icon-no">✗</span><span class="cell-detail">250+80W — só ficha comercial</span></div></td>
+        </tr>
+        <tr>
+          <td class="featcell">Falantes</td>
+          <td><div class="cell"><span class="icon-ok">✓</span><span class="cell-detail">8x3"</span></div></td>
+          <td><div class="cell"><span class="icon-ok">✓</span><span class="cell-detail">6x3"</span></div></td>
+          <td><div class="cell"><span class="icon-ok">✓</span><span class="cell-detail">4x5"+4 tweeter 1"</span></div></td>
+          <td><div class="cell"><span class="icon-ok">✓</span><span class="cell-detail">4x4"+driver</span></div></td>
+          <td><div class="cell"><span class="icon-ok">✓</span><span class="cell-detail">2x6"+driver 1,75"</span></div></td>
+        </tr>
+        <tr>
+          <td class="featcell">Cobertura estreita e controlada (formato line array)</td>
+          <td><div class="cell"><span class="icon-ok">✓</span><span class="cell-detail">120°H x 20°V</span></div></td>
+          <td><div class="cell"><span class="icon-ok">✓</span><span class="cell-detail">160°H x 20°V</span></div></td>
+          <td><div class="cell"><span class="icon-ok">✓</span><span class="cell-detail">150°H x 20°V</span></div></td>
+          <td><div class="cell"><span class="icon-no">✗</span><span class="cell-detail">60°H x 60°V — bem mais aberta</span></div></td>
+          <td><div class="cell"><span class="icon-ok">✓</span><span class="cell-detail">100°H (vertical n/i)</span></div></td>
+        </tr>
+        <tr>
+          <td class="featcell">SPL máximo informado pelo fabricante</td>
+          <td><div class="cell"><span class="icon-ok">✓</span><span class="cell-detail">123dB pico @1m</span></div></td>
+          <td><div class="cell"><span class="icon-no">✗</span><span class="cell-detail">não informado</span></div></td>
+          <td><div class="cell"><span class="icon-ok">✓</span><span class="cell-detail">115dB @1m</span></div></td>
+          <td><div class="cell"><span class="icon-no">✗</span><span class="cell-detail">não informado</span></div></td>
+          <td><div class="cell"><span class="icon-no">✗</span><span class="cell-detail">não informado</span></div></td>
+        </tr>
+        <tr>
+          <td class="featcell">Disponível na cor branca</td>
+          <td><div class="cell"><span class="icon-ok">✓</span><span class="cell-detail">Branco</span></div></td>
+          <td><div class="cell"><span class="icon-ok">✓</span><span class="cell-detail">Branco</span></div></td>
+          <td><div class="cell"><span class="icon-ok">✓</span><span class="cell-detail">Branco</span></div></td>
+          <td><div class="cell"><span class="icon-ok">✓</span><span class="cell-detail">Branco</span></div></td>
+          <td><div class="cell"><span class="icon-ok">✓</span><span class="cell-detail">Branco</span></div></td>
+        </tr>
+        <tr>
+          <td class="featcell">Peso ≤10kg (instalação/manuseio mais fácil)</td>
+          <td><div class="cell"><span class="icon-ok">✓</span><span class="cell-detail">8,2kg</span></div></td>
+          <td><div class="cell"><span class="icon-ok">✓</span><span class="cell-detail">7,06kg — mais leve</span></div></td>
+          <td><div class="cell"><span class="icon-no">✗</span><span class="cell-detail">15,7kg — quase o dobro</span></div></td>
+          <td><div class="cell"><span class="icon-ok">✓</span><span class="cell-detail">8,3kg</span></div></td>
+          <td><div class="cell"><span class="icon-no">✗</span><span class="cell-detail">não informado</span></div></td>
+        </tr>
+        <tr>
+          <td class="featcell">Preço unitário competitivo (≤ R$4.000)</td>
+          <td><div class="cell"><span class="icon-no">✗</span><span class="cell-detail"><strong>R$ 4.800</strong> — mais cara da lista</span></div></td>
+          <td><div class="cell"><span class="icon-ok">✓</span><span class="cell-detail"><strong>R$ 3.690</strong></span></div></td>
+          <td><div class="cell"><span class="icon-ok">✓</span><span class="cell-detail"><strong>R$ 3.878</strong></span></div></td>
+          <td><div class="cell"><span class="icon-ok">✓</span><span class="cell-detail"><strong>R$ 1.400</strong> — mais barata da lista</span></div></td>
+          <td><div class="cell"><span class="icon-no">✗</span><span class="cell-detail">não cotada (upgrade, estimo mais cara)</span></div></td>
+        </tr>
+      </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0">Subgraves — mesmo formato</h3>
+      <div style="overflow-x:auto">
+      <table class="matrix">
+        <tr>
+          <th class="feat">Funcionalidade</th>
+          <th class="modelcol">Oneal<br>OLS-1018BR</th>
+          <th class="modelcol">Oneal<br>OPSB-3218X</th>
+        </tr>
+        <tr>
+          <td class="featcell">Crossover/filtro ajustável embutido</td>
+          <td><div class="cell"><span class="icon-ok">✓</span><span class="cell-detail">CFA 95-480Hz + fase 0-180°</span></div></td>
+          <td><div class="cell"><span class="icon-ok">✓</span><span class="cell-detail">CFA 95-480Hz + fase</span></div></td>
+        </tr>
+        <tr>
+          <td class="featcell">Potência RMS confirmada em manual do fabricante</td>
+          <td><div class="cell"><span class="icon-no">✗</span><span class="cell-detail">600W — só ficha comercial</span></div></td>
+          <td><div class="cell"><span class="icon-no">✗</span><span class="cell-detail">600W — só ficha comercial</span></div></td>
+        </tr>
+        <tr>
+          <td class="featcell">Falante</td>
+          <td><div class="cell"><span class="icon-ok">✓</span><span class="cell-detail">18"</span></div></td>
+          <td><div class="cell"><span class="icon-ok">✓</span><span class="cell-detail">18"</span></div></td>
+        </tr>
+        <tr>
+          <td class="featcell">Disponível na cor branca</td>
+          <td><div class="cell"><span class="icon-ok">✓</span><span class="cell-detail">Branco</span></div></td>
+          <td><div class="cell"><span class="icon-no">✗</span><span class="cell-detail">Não encontrado em branco</span></div></td>
+        </tr>
+        <tr>
+          <td class="featcell">Preço unitário</td>
+          <td><div class="cell"><span class="icon-no">✗</span><span class="cell-detail">R$ 2.350-4.690 — grande variação</span></div></td>
+          <td><div class="cell"><span class="icon-no">✗</span><span class="cell-detail">Faixa parecida, não fechada</span></div></td>
+        </tr>
+      </table>
+      </div>
+    </div>
+
+    <div class="verdict">
+      <h3>Avaliação final</h3>
+      <p><strong>Para a nave (12 un.):</strong> Staner SLR306S vence — mais barata que a Attack (R$3.690 x R$4.800), mais leve, cobertura horizontal maior (160° x 120°) com a mesma cobertura vertical de 20° que é o que controla o alcance ao longo da nave. Nenhuma das duas tem DSP, então isso não pesa na escolha entre elas.</p>
+      <p><strong>Para o altar (4 un.):</strong> troca real é preço x qualidade vocal. Staner SLR-504A custa quase o mesmo que a SLR306S mas pesa o dobro (15,7kg) — o ganho é o tweeter dedicado para voz. Oneal OPB-404X é 64% mais barata mas com cobertura muito mais aberta (60°x60°), menos controlada.</p>
+      <p><strong>Sobre a Attack VSC83A (referência):</strong> depois de confirmar o RMS real (670W) no manual oficial, ela é de fato a mais potente e com o melhor SPL confirmado da lista — mas também é a mais cara e a única decisão de comprá-la de novo só faz sentido se potência bruta pesar mais que economia no seu critério.</p>
+      <p><strong>Sobre DSP:</strong> nenhuma caixa da faixa de preço principal (R$1.400-4.800) tem processador completo — é um recurso de categoria acima (Staner Alive 306A). Se o alinhamento entre zonas for prioridade, o caminho é um DSP externo dedicado (aba Mesa & DSP), não trocar de caixa.</p>
+      <p><strong>Sobre preço no geral:</strong> a Oneal OPB-404X (R$1.400) é disparada a mais barata e mais leve de toda a lista, mas com a cobertura mais aberta — funciona bem como retorno/entrada, não como caixa principal da nave. Fora ela, a ordem de preço do mais barato pro mais caro é: Staner SLR306S → Staner SLR-504A → Attack VSC83A → Staner Alive 306A (estimada).</p>
+    </div>
+  </section>
+
+  <section class="panel" data-tab="potencia">
+    <h2>Potência e Headroom — resolvendo o impasse "distribuir × potência" <span class="tag rec">Nova análise</span></h2>
+
+    <div class="card">
+      <h3 style="margin-top:0">O que te travou (e por que a conta assusta)</h3>
+      <p>A dúvida foi legítima: o cenário distribuído soma <strong>12 × 120W = 1.440W</strong> nas colunas da nave, enquanto o padrão Attack soma <strong>8 × 670W = 5.360W</strong>. Batendo o olho, parece que o distribuído tem menos de um terço da "força". Só que essa conta compara duas coisas que não se comparam desse jeito — e quando a gente corrige, o impasse se desfaz. Abaixo, o porquê, e três caminhos concretos pra você ter distribuição <em>e</em> folga de potência.</p>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0">Os 3 fatos que desmontam a comparação de watts</h3>
+      <p><strong>1. Watt não é volume.</strong> Potência elétrica e volume não andam na mesma proporção. Dobrar a potência sobe só <strong>+3dB</strong> no nível. Ou seja, os 670W da Attack contra os 120W da Staner (5,6× mais watt) rendem cerca de <strong>+7,5dB</strong> de SPL máximo — não "5,6× mais alto". Pra sensação de "o dobro de volume" o ouvido precisa de +10dB. A diferença real entre elas é "perceptivelmente mais forte", não "várias vezes mais forte".</p>
+      <p><strong>2. A distância é que "come" potência.</strong> Cada vez que a distância caixa→ouvinte dobra, o nível cai 6dB — e repor 6dB exige 4× a potência. Veja o tamanho do problema de "jogar" som longe:</p>
+      <table>
+        <tr><th>Distância caixa → ouvinte</th><th>Queda de nível</th><th>Potência p/ manter o mesmo volume</th></tr>
+        <tr class="highlight"><td>1 m (referência de catálogo)</td><td>0 dB</td><td>1×</td></tr>
+        <tr><td>4 m (típico no distribuído)</td><td>−12 dB</td><td>16×</td></tr>
+        <tr><td>8 m</td><td>−18 dB</td><td>64×</td></tr>
+        <tr><td>40 m (fundo, no sistema concentrado)</td><td>−32 dB</td><td>~1.600×</td></tr>
+      </table>
+      <p class="assumption">Queda teórica em campo livre (lei do inverso do quadrado). Line arrays de vertical estreito caem mais devagar no campo próximo, então na prática o meio da nave perde um pouco menos — mas a ordem de grandeza é essa.</p>
+      <p><strong>3. No distribuído, cada caixa trabalha de perto.</strong> Com 6 caixas por lado a ~8,6m, o ouvinte está a ~2-5m da caixa mais próxima. A essa distância, uma coluna não precisa ser um monstro de 670W pra entregar SPL confortável e limpo. É concentrar potência em poucos pontos que precisam alcançar 40m que <em>realmente</em> gasta watt — e ainda joga energia demais na sala, alimentando a reverberação da igreja e piorando a inteligibilidade.</p>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0">A conta que importa: potência TOTAL do sistema</h3>
+      <p>Quando você soma o sistema inteiro (colunas <strong>+ subgraves</strong>), a surpresa aparece:</p>
+      <table>
+        <tr><th>Configuração</th><th>Colunas da nave</th><th>Subgraves</th><th>Potência total (nave + sub)</th></tr>
+        <tr><td>Cenário A — Attack concentrado (8 caixas)</td><td>8 × 670W = 5.360W</td><td>2 × 600W = 1.200W</td><td>6.560W</td></tr>
+        <tr><td>Cenário C — nave SLR306S (12)</td><td>12 × 120W = 1.440W</td><td>4 × 600W = 2.400W</td><td>3.840W</td></tr>
+        <tr class="highlight"><td>Cenário C — nave SLR-504A (12)</td><td>12 × 350W = 4.200W</td><td>4 × 600W = 2.400W</td><td>6.600W</td></tr>
+        <tr><td>Cenário C — nave Attack VSC83A (12)</td><td>12 × 670W = 8.040W</td><td>4 × 600W = 2.400W</td><td>10.440W</td></tr>
+      </table>
+      <div class="note">Trocando só a coluna da nave para a <strong>Staner SLR-504A</strong>, o sistema distribuído passa a ter <strong>mais potência total (6.600W) que o Attack concentrado do Cenário A (6.560W)</strong> — e ainda melhor espalhada, com 4 subgraves em vez de 2. Aquele "1.440W" que te assustou era só a coluna mais fraca da lista somada sozinha, ignorando que (a) dá pra escolher uma coluna mais potente sem mudar o layout, e (b) quem carrega o peso do grave é o subwoofer, não a coluna.</div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0">O ponto que muda tudo: quem "compete com a bateria" é o SUB, não a coluna</h3>
+      <p>A bateria acústica gera 100-110dB com a energia concentrada no grave e médio-grave (bumbo, caixa, surdo). Quem dá "peso" e "soco" pra plateia sentir o som acima da bateria são os <strong>4 subgraves de 18" (2.400W)</strong> — não as colunas. As colunas cuidam de voz, médios e agudos: o que elas precisam é de <strong>headroom pra manter a voz limpa e inteligível por cima</strong> da bateria, não de força bruta pra "brigar" com o bumbo.</p>
+      <div class="note">Ou seja: a preocupação com potência estava certa no princípio (headroom importa) mas mirando a caixa errada. Pra vencer a <em>bateria</em>, quem trabalha é o sub. Pra <em>voz limpa</em>, a coluna precisa de folga — e 350W já resolve isso com sobra. É por isso que subir de 120W pra 350W (SLR-504A) responde sua preocupação, sem precisar chegar aos 670W.</div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0">O impasse era uma escolha falsa</h3>
+      <p>"Distribuir" e "ter potência" nunca foram opostos. Eles pareciam opostos só porque a coluna distribuída que a gente tinha escolhido (SLR306S) era, ao mesmo tempo, a <strong>mais barata E a mais fraca</strong> da lista. Basta subir de modelo mantendo o <strong>mesmo layout distribuído (6 por lado)</strong> que você tem as duas coisas: distribuição uniforme <em>e</em> headroom de sobra.</p>
+      <p class="assumption">Detalhe prático: a SLR306S está inclusive fora de estoque em várias lojas na consulta de agora (Keepsound, Brug) — mais um motivo pra subir de tier em vez de insistir nela.</p>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0">As 3 opções de coluna para a nave — todas distribuídas (6/lado), todas vertical 20°</h3>
+      <div style="overflow-x:auto">
+      <table class="matrix">
+        <tr>
+          <th class="feat">Item</th>
+          <th class="modelcol">Staner<br>SLR306S</th>
+          <th class="modelcol">Staner<br>SLR-504A ⭐</th>
+          <th class="modelcol">Attack<br>VSC83A</th>
+        </tr>
+        <tr><td class="featcell">Potência</td><td>120W</td><td><strong>350W</strong></td><td><strong>670W</strong> (2×335)</td></tr>
+        <tr><td class="featcell">SPL máx @1m</td><td>~108-110dB<br><span class="cell-detail muted">estimado, não publicado</span></td><td>115dB<br><span class="cell-detail muted">confirmado</span></td><td>123dB pico<br><span class="cell-detail muted">confirmado</span></td></tr>
+        <tr><td class="featcell">Alto-falantes</td><td>6×3"</td><td>4×5" + 4 tweeters 1"</td><td>8×3"</td></tr>
+        <tr><td class="featcell">Vertical (controle na nave comprida)</td><td>20° ✓</td><td>20° ✓</td><td>20° ✓</td></tr>
+        <tr><td class="featcell">Tweeter dedicado p/ voz</td><td>não</td><td><strong>sim ✓</strong></td><td>não</td></tr>
+        <tr><td class="featcell">Peso</td><td>7,06kg</td><td>15,7kg</td><td>8,2kg</td></tr>
+        <tr><td class="featcell">Preço unit.</td><td>R$ 3.690<br><span class="cell-detail muted">fora de estoque</span></td><td>~R$ 3.878</td><td>R$ 4.793</td></tr>
+        <tr><td class="featcell">12 unidades (nave)</td><td>R$ 44.280</td><td><strong>R$ 46.536</strong></td><td>R$ 57.516</td></tr>
+        <tr><td class="featcell">Headroom p/ banda c/ bateria</td><td>no limite</td><td><strong>confortável</strong></td><td>sobra</td></tr>
+      </table>
+      </div>
+      <div class="verdict">
+        <h3>Minha recomendação para a nave</h3>
+        <p><strong>Staner SLR-504A</strong> é o ponto de equilíbrio: quase <strong>3× a potência</strong> da SLR306S (120W → 350W) e SPL confirmado de 115dB, por só <strong>~R$ 2.256 a mais</strong> no total das 12 — praticamente o mesmo custo. De quebra traz os <strong>tweeters dedicados de voz</strong> (melhor pra padre e leitores) e mantém a vertical de 20°, que é o que controla o som ao longo dos 43m. Resolve sua preocupação de "watt baixo" sem sair do conceito distribuído.</p>
+        <p>Se o orçamento permitir e você quiser <strong>o máximo de folga na mesma marca da referência</strong>, a <strong>Attack VSC83A distribuída</strong> (12 unidades, 670W/123dB, ~R$ 57,5k) entrega distribuição + a maior potência da lista. É ~R$ 11k a mais que a SLR-504A, comprando uma sobra de headroom que — pelo argumento do sub acima — você provavelmente não vai precisar usar, mas é uma escolha válida se "nunca faltar" pesar mais que o custo.</p>
+        <p><strong>A SLR306S sai da lista pra este uso</strong> (headroom no limite pra banda com bateria + fora de estoque).</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0">Carta na manga: SoundBox SB 2.6 (mais SPL bruto)</h3>
+      <p>Se em algum momento a prioridade for <strong>SPL puro pelo menor preço</strong>, a <strong>SoundBox SB 2.6 Ativa Branca</strong> chama atenção: <strong>500W RMS, 129dB de pico</strong>, 2×6" + driver de titânio, ~R$ 3.949-4.482 — mais SPL que as três opções acima, por menos que a Attack.</p>
+      <div class="note"><strong>O porém, importante pra ESTA igreja:</strong> a dispersão vertical dela é de <strong>70°</strong> (não é line array estreito). Numa nave comprida e reverberante, 70° na vertical espalha energia no piso e no teto, alimentando a reverberação e sujando a inteligibilidade — o oposto do que a vertical de 20° das colunas faz. Ela brilha em salas mais curtas ou menos reverberantes. Pra uma nave de 43m, as colunas de 20° (Staner/Attack) dão controle melhor mesmo com número de SPL menor no papel. Por isso ela fica como alternativa, não como recomendação principal.</div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0">"Existe uma caixa melhor?" — o tier premium</h3>
+      <p>Existe, sim — mas cada opção "melhor" muda alguma regra do jogo:</p>
+      <div style="overflow-x:auto">
+      <table>
+        <tr><th>Modelo</th><th>Tipo</th><th>Potência / SPL</th><th>Branca?</th><th>Preço BR aprox.</th><th>Pegadinha</th></tr>
+        <tr><td>RCF EVOX J8</td><td>Coluna + sub 12" (1 peça portátil)</td><td>1.400W / ~123dB, DSP real</td><td>Sim ✓</td><td>~R$ 11.500</td><td>Feita pra 1-2 posições, não pra distribuir 6/lado</td></tr>
+        <tr><td>Electro-Voice Evolve 50</td><td>Coluna + sub 12" (portátil)</td><td>1.000W / 127dB</td><td>Sim ✓</td><td>~R$ 15.900</td><td>Idem — 1-2 pontos, muda o conceito</td></tr>
+        <tr><td>JBL PRX One</td><td>Coluna + sub 12", DSP + delay real</td><td>2.000W pico / 130dB</td><td>Só preta ✗</td><td>~R$ 15k+</td><td>Não vem branca; e é 1-2 pontos</td></tr>
+        <tr><td>Bose Panaray MSA12X</td><td>Coluna de instalação, feixe direcionado por DSP</td><td>600W, vertical direcionada eletronicamente</td><td>Sim ✓ (MSA12X-W)</td><td>~R$ 17-27k/un (sob encomenda)</td><td>A "ferramenta certa" pra nave comprida — mas 3-5× o custo e exige projeto acústico</td></tr>
+      </table>
+      </div>
+      <div class="note"><strong>Veredito honesto:</strong> os portáteis (EVOX, Evolve, PRX) são salto real de qualidade, mas são desenhados pra 1-2 posições — usá-los distribuídos 6 por lado desmonta a lógica do projeto e explode o custo. As colunas de instalação com beam-steering (Bose MSA12X, RCF Vasa/L-Pad) <em>são</em> distribuíveis e são o que a engenharia recomenda pra igreja comprida e reverberante — mas custam 3 a 5× e pedem projeto acústico dedicado. Pro seu orçamento e conceito (distribuído, marca nacional custo-benefício), <strong>Attack/Staner são o tier certo</strong>. "Melhor" existe, mas ou muda o layout ou multiplica o custo. O upgrade inteligente <em>dentro do seu plano</em> é subir a coluna da nave para a SLR-504A (ou Attack), não pular pro premium.</div>
+    </div>
+  </section>
+
+  <section class="panel" data-tab="comparativo">
+    <h2>Comparativo entre cenários</h2>
+    <div class="card">
+      <table>
+        <tr><th>Cenário</th><th>Nave</th><th>Altar</th><th>Entrada</th><th>Subs</th><th>Total estimado</th></tr>
+        <tr><td>A — Referência</td><td>8x Attack VSC83A</td><td>2x OPB-404X (retorno)</td><td>—</td><td>2</td><td>R$ 47.600</td></tr>
+        <tr><td>B — Distribuída (sem zona)</td><td>12x Staner SLR306S</td><td>4x OPB-404X (retorno)</td><td>—</td><td>2</td><td>R$ 56.280</td></tr>
+        <tr><td>C — Por zona, altar Opção 2</td><td>12x SLR306S</td><td>4x OPB-404X</td><td>1x OPB-404X</td><td>4</td><td>R$ 64.080</td></tr>
+        <tr class="highlight"><td>C — Por zona, altar Opção 1</td><td>12x SLR306S</td><td>4x SLR-504A</td><td>1x OPB-404X</td><td>4</td><td>R$ 73.992</td></tr>
+      </table>
+      <p>O Cenário C é o único que separa altar, nave e entrada com fontes dedicadas para cada função — é o mais caro no total porque agora tem 4 subgraves em vez de 2 e uma zona extra (entrada), mas é também o que melhor atende ao briefing detalhado que você trouxe (padre, leitores, ministros, e reforço de grave nas duas pontas da nave). A diferença entre as opções de altar (R$ 9.912) é puramente sobre a qualidade vocal desejada ali: tweeter dedicado (Opção 1) ou não (Opção 2).</p>
+      <div class="note">Nenhum desses totais inclui: cabeamento, suportes/pedestais/rodinhas, DSP externo (se necessário), instalação/mão de obra, e o coro (ainda em aberto). São só os equipamentos de caixa/sub.</div>
+      <div class="note" style="border-left-color:#8a6100;background:var(--warn);color:var(--warn-text)">⚡ Para comparar as opções de <strong>potência da coluna da nave</strong> (mantendo o layout distribuído), veja a aba Potência &amp; Headroom. Impacto no total do Cenário C, trocando só a coluna da nave: SLR306S <strong>R$ 44.280</strong> → SLR-504A <strong>R$ 46.536</strong> (+R$ 2.256) → Attack VSC83A <strong>R$ 57.516</strong> (+R$ 13.236). Nos dois primeiros casos o custo/caixa é quase o mesmo — o pulo grande de preço só aparece na Attack.</div>
+    </div>
+  </section>
+
+  <section class="panel" data-tab="qualidade">
+    <h2>Análise qualitativa: Attack x Staner</h2>
+    <div class="grid2">
+      <div class="card">
+        <h3 style="margin-top:0">Attack Audio System</h3>
+        <ul class="clean">
+          <li>Marca nacional com décadas de mercado, catálogo amplo (colunas, subs, line array, acessórios).</li>
+          <li>Reclame Aqui: sem nota de reputação oficial (poucas reclamações registradas, volume baixo demais pra calcular). 3 reclamações encontradas, 100% respondidas, tempo médio de resposta ~7h.</li>
+          <li>Reclamações encontradas: defeito de produto, assistência técnica lenta/cara em alguns relatos, um caso pontual de sub Versa (VRS1810a) com relato de queima — tratar como incidente isolado, não como padrão comprovado.</li>
+          <li>RMS real confirmado no manual técnico oficial (não no site de vendas): 335W RMS por canal x 2 canais = 670W RMS total contínuo por caixa, 1.340W de pico total. Ver aba Ficha técnica.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="margin-top:0">Staner</h3>
+        <ul class="clean">
+          <li>Pioneira no Brasil em line array (primeira marca nacional a lançar linha completa em 2007) — forte especialização nesse formato específico, que é o que vocês estão comprando.</li>
+          <li>Reclame Aqui: também sem nota oficial (volume baixo). 5 reclamações, 100% respondidas, tempo médio de resposta mais lento (~2 dias e 14h) que a Attack.</li>
+          <li>Reclamações concentradas no modelo SR315A (caixa multiuso, não é o modelo indicado aqui) — distorção e defeito recorrente em alguns relatos, incluindo após reparo.</li>
+          <li>Manual técnico completo e público (SLR-306) — mais transparência de especificação que a Attack nesse caso específico.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">Leitura geral</h3>
+      <p>As duas são marcas nacionais de faixa custo-benefício (não são as marcas "premium" internacionais tipo JBL Professional, RCF ou QSC, que custam bem mais). Nenhuma das duas tem volume de reclamações suficiente no Reclame Aqui para uma nota confiável — os relatos existentes são pontuais e não permitem dizer com segurança que uma é "melhor" que a outra em confiabilidade. A Staner tem a favor dela ser especialista histórica em line array (o formato que vocês estão usando) e publicar ficha técnica completa; a Attack tem tempo de resposta mais rápido nas reclamações registradas, mas ficha técnica menos transparente (sem RMS publicado). Isso não é uma comparação de laboratório — é leitura de reputação pública, então vale pedir ao técnico a opinião dele por experiência de campo, que pesa mais que essa pesquisa.</p>
+    </div>
+  </section>
+
+  <section class="panel" data-tab="mesa">
+    <h2>Mesa Soundcraft Ui24R — o que ela resolve e o que não resolve</h2>
+    <div class="card">
+      <table>
+        <tr><th>Recurso</th><th>Tem?</th><th>Observação</th></tr>
+        <tr><td>Saídas AUX independentes</td><td>Sim — 8 XLR</td><td>Dá para separar altar / nave / subs frente / subs fundo / coro / entrada em envios próprios, sem misturar tudo numa saída só.</td></tr>
+        <tr><td>EQ por canal e por saída</td><td>Sim</td><td>Paramétrico 4 bandas nas entradas; gráfico de 31 bandas nas saídas.</td></tr>
+        <tr><td>Compressor / gate / de-esser</td><td>Sim</td><td>Em todos os canais de entrada.</td></tr>
+        <tr><td>Supressor de feedback (dbx AFS)</td><td>Sim</td><td>Aplicável a qualquer saída — útil para os microfones do altar.</td></tr>
+        <tr><td>Filtro HP/LP</td><td>Sim, no main L/R</td><td>Não confirmado nas 8 saídas AUX individualmente — verificar no manual/no local.</td></tr>
+        <tr><td><strong>Delay / alinhamento de tempo entre zonas</strong></td><td><span class="tag risk">Não é o forte dela</span></td><td>A Ui24R é uma mesa digital compacta, não um processador de gerenciamento de caixas (speaker management). Ela não substitui um DSP dedicado quando você tem várias zonas fisicamente distantes (altar, nave, fundo, coro) que precisam ser alinhadas em tempo para não gerar eco/comb filtering perceptível.</td></tr>
+      </table>
+      <div class="note">Recomendação: para o Cenário C funcionar bem com zonas separadas por distância real (altar → nave → fundo → coro), vale considerar um processador de DSP externo dedicado (tipo dbx DriveRack ou similar) entre a mesa e os amplificadores/caixas ativas, especialmente se as caixas escolhidas não tiverem DSP e delay embutidos. Isso ainda não foi orçado nesta pesquisa — fica como próximo passo se o técnico concordar que é necessário.</div>
+    </div>
+  </section>
+
+  <section class="panel" data-tab="pendencias">
+    <h2>Pendências e próximos passos</h2>
+    <div class="card">
+      <ul class="clean">
+        <li><span class="tag pend">A confirmar</span> Qual opção de caixa para o altar (Opção 1 Staner SLR-504A x Opção 2 Oneal OPB-404X) — diferença de R$ 9.912 no total.</li>
+        <li><span class="tag pend">Em aberto</span> Coro: você já detalhou a lógica (ver Cenário C → Coro) mas os dois números de comprimento que você deu (4m e 6m) ainda precisam ser confirmados como distância real de parede a parede.</li>
+        <li><span class="tag pend">Em aberto</span> Necessidade e modelo de DSP externo, caso queiram os subs/zonas alinhados em delay (não é obrigatório para o resultado ser bom, é refinamento). Nenhuma caixa da lista principal tem DSP embutido — ver aba Ficha técnica.</li>
+        <li><span class="tag pend">Em aberto</span> Cotação fechada dos subgraves e da caixa de entrada (grande variação de preço entre lojas).</li>
+        <li><span class="tag rec">Resolvido</span> Nave confirmada em 6 caixas por lado (~8,6m de espaçamento) ao longo dos 43m.</li>
+        <li><span class="tag rec">Resolvido</span> Altar confirmado em 4 caixas (2 padre + 2 laterais), não mais 6.</li>
+        <li><span class="tag rec">Resolvido</span> Subgraves: 2 frente + 2 fundo (cantos), tratados como pares independentes — ver análise técnica na aba Cenário C.</li>
+        <li><span class="tag rec">Resolvido</span> RMS real da Attack VSC83A confirmado em manual técnico oficial: 670W RMS total (335W x 2 canais) — ver aba Ficha técnica.</li>
+        <li><span class="tag rec">Resolvido</span> Impasse "distribuir × potência" (aba Potência &amp; Headroom): recomendação é subir a coluna da nave para <strong>Staner SLR-504A (350W)</strong> mantendo o layout distribuído — quase o mesmo preço da SLR306S, SPL confirmado (115dB), tweeter de voz. <strong>Attack VSC83A (670W)</strong> fica como opção de topo. SLR306S (120W) descartada para banda com bateria (headroom no limite + fora de estoque).</li>
+        <li><span class="tag pend">A confirmar</span> Escolha final da coluna da nave entre SLR-504A (recomendada) e Attack VSC83A (topo) — diferença de R$ 10.980 no total do projeto. Confirmar também preço à vista/Pix e estoque no fechamento (SLR-504A ~R$3.5-3.9k conforme loja; Attack ~R$4.793).</li>
+      </ul>
+      <p class="assumption">Essas notas também estão salvas num arquivo de pesquisa interno, para eu não precisar refazer as buscas já feitas quando formos avançar nesses pontos.</p>
+    </div>
+  </section>
+
+  <section class="panel" data-tab="fontes">
+    <h2>Fontes consultadas</h2>
+    <div class="card src-list">
+      <a href="https://www.mercadolivre.com.br/p/MLB40399805" target="_blank">Attack VSC83A — anúncio original (Mercado Livre / Musiaudio)</a>
+      <a href="https://musiaudio.com.br/caixa-de-som-coluna-amplificada-8x3-versa-red-attack-vsc83a.html" target="_blank">Attack VSC83A — ficha do distribuidor oficial (Musiaudio)</a>
+      <a href="https://www.attack.com.br/repositorio/manuais-setups/vsc83/manual-tecnico-vsc83a.pdf" target="_blank">Attack VSC83A — Manual Técnico oficial (fonte primária do RMS real: 335W/canal x 2)</a>
+      <a href="https://www.megasom.com.br/audio-e-tecnologia/line-array/line-array-ativo-staner-alive-306a" target="_blank">Staner Alive 306A — especificações (DSP embutido)</a>
+      <a href="https://www.x5music.com.br/caixa-coluna-ativa-attack-vsc83a-a-8x3-pol/p" target="_blank">Attack VSC83A — X5 Music (comparação de preço)</a>
+      <a href="https://staner.com.br/wp-content/uploads/2024/05/SLR-306-MANUAL.pdf" target="_blank">Staner SLR306S — manual técnico oficial</a>
+      <a href="https://www.keepsound.com.br/caixa-tipo-coluna-vertical-ativa-120w-branca-slr-306s-staner-11612" target="_blank">Staner SLR306S Branca — Keepsound</a>
+      <a href="https://www.keepsound.com.br/caixa-tipo-coluna-vertical-ativa-350w-branca-slr-504a-staner" target="_blank">Staner SLR-504A Branca — Keepsound (specs)</a>
+      <a href="https://produto.mercadolivre.com.br/MLB-1684079401-line-array-vertical-staner-slr-504s-ativa-branca-_JM" target="_blank">Staner SLR-504A Branca — Mercado Livre (preço)</a>
+      <a href="https://www.carneiromusic.com.br/caixa-ativa-oneal-opb-404-x-torre-4-falantes-4-polegadas-120w-rms-4-ohms-branca-/p" target="_blank">Oneal OPB-404X Branca — Carneiro Instrumentos</a>
+      <a href="https://www.audiodriver.com.br/produto/caixa-ativa-grave-para-line-array-18-600w-rms-oneal-ols-1018-br-branca.html" target="_blank">Oneal OLS-1018BR — AudioDriver</a>
+      <a href="https://www.timbres.com.br/subwoofer-ativo-oneal-line-array-18-ols1018br-branco" target="_blank">Oneal OLS-1018BR — Timbres Instrumentos Musicais</a>
+      <a href="https://www.soundcraft.com/en-US/products/ui24r" target="_blank">Soundcraft Ui24R — página oficial</a>
+      <a href="https://www.soundonsound.com/reviews/soundcraft-ui24r" target="_blank">Soundcraft Ui24R — review técnico (Sound on Sound)</a>
+      <a href="https://www.reclameaqui.com.br/empresa/attack-audio-system/" target="_blank">Attack Audio System — Reclame Aqui</a>
+      <a href="https://www.reclameaqui.com.br/empresa/staner/" target="_blank">Staner — Reclame Aqui</a>
+    </div>
+  </section>
+
+  <footer>Documento de trabalho — valores e especificações levantados via pesquisa web em julho/2026, sujeitos a confirmação direta com fornecedores antes da compra.</footer>
+</div>
+
+<script>
+  const tabs = [
+    {id:'resumo', label:'Resumo'},
+    {id:'cenarioC', label:'Cenário C — por zona'},
+    {id:'ficha', label:'Ficha técnica'},
+    {id:'potencia', label:'Potência & Headroom'},
+    {id:'comparativo', label:'Comparativo'},
+    {id:'qualidade', label:'Qualidade das marcas'},
+    {id:'mesa', label:'Mesa & DSP'},
+    {id:'cenarioA', label:'Cenário A — referência'},
+    {id:'cenarioB', label:'Cenário B — distribuída'},
+    {id:'pendencias', label:'Pendências'},
+    {id:'fontes', label:'Fontes'},
+  ];
+  const nav = document.getElementById('tabnav');
+  tabs.forEach((t,i)=>{
+    const btn = document.createElement('button');
+    btn.textContent = t.label;
+    btn.dataset.target = t.id;
+    if(i===0) btn.classList.add('active');
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('section.panel').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelector('section.panel[data-tab="'+t.id+'"]').classList.add('active');
+      window.scrollTo({top:0, behavior:'smooth'});
+    });
+    nav.appendChild(btn);
+  });
+  document.querySelector('section.panel[data-tab="resumo"]').classList.add('active');
+</script>
+
+</body>
+</html>
